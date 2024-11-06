@@ -1,240 +1,112 @@
-import React, { useContext, useEffect } from 'react';
-import { ProductContext } from '../ProductContext';
-import { Button, Form, InputNumber, Input, Space } from 'antd';
-import { MinusCircleOutlined, PlusOutlined } from '@ant-design/icons';
-import styled from 'styled-components';
+// src/pages/ConfirmationPage.jsx
+import React, { useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useProductContext } from '../components/ProductContext';
+import { Button, Form, Input, InputNumber, message } from 'antd';
 import { v4 as uuidv4 } from 'uuid';
-import { toast } from "react-toastify";
-import { useNavigate } from "react-router-dom";
 
-const Div = styled.div`
-    display:flex;
-    justify-content:center;
-    align-items:center;
-    width:100%;
-    flex-wrap:wrap;
+export default function ConfirmationPage({ addProduct }) {
+  const navigate = useNavigate();
+  const { pendingProduct, setPendingProduct } = useProductContext();
 
-`;
-
-export default function ConfirmationPage({addProductSubmit}) {
-    const navigate=useNavigate(); //Used to redirect to other pages
-    const { productData } = useContext(ProductContext);
-    const [form] = Form.useForm(); 
-
-    // Set the form values whenever productData changes
-    useEffect(() => {
-        if (productData) {
-            form.setFieldsValue(productData);
-        }
-    }, [productData, form]);
-
-    const handleSubmit = (values) => {
-        const {
-            availabilityStatus, brand, category, depth, description, discount, height, images,
-            minimumOrderQuantity, price, rating, shippingInformation, title, warrantyInformation, width
-        } = values;
-
-        const newProduct = {
-            id: uuidv4(),
-            title,
-            description,
-            category,
-            price,
-            discountPercentage: discount,
-            rating,
-            stock: 0,
-            tags: [],
-            brand,
-            sku: "",
-            weight: 0,
-            dimensions: {
-                width,
-                height,
-                depth
-            },
-            warrantyInformation,
-            shippingInformation,
-            availabilityStatus,
-            reviews: [{}],
-            returnPolicy: "",
-            minimumOrderQuantity,
-            meta: {},
-            images,
-            thumbnail: ""
-        };
-
-        addProductSubmit(newProduct);
-        toast.success("Product added successfully");
-        navigate('/');
+  const handleSubmit = async (values) => {
+    const newProduct = { 
+      id: uuidv4(), 
+      title: values.title, 
+      description: values.description, 
+      price: values.price,
+      discountPercentage: values.discountPercentage, // Added discount
     };
-    return (
-        <>
-        <h2 style={{textAlign:'center'}}>Confirm - Add New Product</h2>
-        <Div>
-        <Form 
-            form={form} // Link the form instance
-            layout="vertical" // Make it a vertical layout form
-            name="productForm"
-            initialValues={{ remember: true }} // Initial values can be kept simple
-            onFinish={handleSubmit}
-            
+
+    try {
+      await addProduct(newProduct);
+      message.success('Product added successfully');
+      setPendingProduct(null); // Clear the pending product
+      navigate('/'); // Navigate to home page
+    } catch (error) {
+      message.error('Error adding product');
+    }
+  };
+
+  useEffect(() => {
+    if (!pendingProduct) {
+      navigate('/');  // Redirect to home if no pending product
+    }
+  }, [pendingProduct, navigate]);
+
+  return (
+    <div style={{ padding: '30px', maxWidth: '600px', margin: '0 auto', backgroundColor: '#f9f9f9', borderRadius: '10px' }}>
+      <h2 style={{ textAlign: 'center', marginBottom: '20px' }}>Confirm Your Product Details</h2>
+      <Form layout="vertical" onFinish={handleSubmit}>
+        <Form.Item 
+          label="Product Name" 
+          name="title" 
+          initialValue={pendingProduct?.title}
+          rules={[
+            { required: true, message: 'Please input the product name!' },
+            { whitespace: true, message: 'Product name cannot be empty or just spaces!' }
+          ]}
         >
-            <Form.Item
-                label="Product Name"
-                name="title"
-                rules={[{ required: true, message: 'Please input the product name!' }]}
-            >
-                <Input placeholder="Enter product name" style={{ width: '250px' }} />
-            </Form.Item>
-
-            <Form.Item
-                label="Price"
-                name="price"
-                rules={[{ required: true, message: 'Please input the price!' }]}
-            >
-                <InputNumber style={{ width: '250px' }} placeholder="Enter product price" />
-            </Form.Item>
-
-            <Form.Item
-                label="Description"
-                name="description"
-                rules={[{ required: true, message: 'Please input the product description!' }]}
-            >
-                <Input.TextArea placeholder="Enter product description" style={{ width: '250px' }} />
-            </Form.Item>
-
-            <Form.Item
-                label="Brand"
-                name="brand"
-                rules={[{ required: false }]}
-            >
-                <Input style={{ width: '250px' }} placeholder="Enter product brand" />
-            </Form.Item>
-
-            <Form.Item
-                label="Category"
-                name="category"
-                rules={[{ required: true, message: 'Please input the product category!' }]}
-            >
-                <Input style={{ width: '250px' }} placeholder="Enter product category" />
-            </Form.Item>
-
-            <Form.Item
-    label="Dimensions"
-    name="dimensions"
-    // No longer apply validation to the whole `dimensions` object
->
-    <Space>
-        <Form.Item
-            name="height"
-            noStyle
-            rules={[{ required: true, message: 'Please input the height!' }]}
-        >
-            <InputNumber placeholder="Height" style={{ width: '80px' }} />
+          <Input
+            placeholder="Enter product name"
+            style={{ width: '100%', borderRadius: '5px' }}
+          />
         </Form.Item>
-
-        <Form.Item
-            name="width"
-            noStyle
-            rules={[{ required: true, message: 'Please input the width!' }]}
-        >
-            <InputNumber placeholder="Width" style={{ width: '80px' }} />
-        </Form.Item>
-
-        <Form.Item
-            name="depth"
-            noStyle
-            rules={[{ required: true, message: 'Please input the depth!' }]}
-        >
-            <InputNumber placeholder="Depth" style={{ width: '80px' }} />
-        </Form.Item>
-    </Space>
-</Form.Item>
-
-            <Form.Item
-                label="Discount"
-                name="discount"
-                rules={[{ required: false }]}
-            >
-                <InputNumber style={{ width: '250px' }} placeholder="Enter product discount percentage" />
-            </Form.Item>
-
-            <Form.Item
-                label="Minimum Order Quantity"
-                name="minimumOrderQuantity"
-                rules={[{ required: true, message: 'Please input the minimum order quantity!' }]}
-            >
-                <InputNumber style={{ width: '250px' }} placeholder="Enter product minimum order quantity" />
-            </Form.Item>
-
-            <Form.Item
-                label="Rating"
-                name="rating"
-                rules={[{ required: true, message: 'Please input the rating!' }]}
-            >
-                <InputNumber style={{ width: '250px' }} placeholder="Enter product rating" />
-            </Form.Item>
-
-            <Form.Item
-                label="Availability Status"
-                name="availabilityStatus"
-                rules={[{ required: true, message: 'Please input the availability status!' }]}
-            >
-                <Input style={{ width: '250px' }} placeholder="Enter product availability status" />
-            </Form.Item>
-
-            <Form.Item
-                label="Shipping Information"
-                name="shippingInformation"
-                rules={[{ required: true, message: 'Please input the shipping information!' }]}
-            >
-                <Input style={{ width: '250px' }} placeholder="Enter product shipping information" />
-            </Form.Item>
-
-            <Form.Item
-                label="Warranty Information"
-                name="warrantyInformation"
-                rules={[{ required: true, message: 'Please input the warranty information!' }]}
-            >
-                <Input style={{ width: '250px' }} placeholder="Enter product warranty information" />
-            </Form.Item>
-
-            <Form.List name="images">
-                {(fields, { add, remove }) => (
-                    <>
-                        {fields.map(({ key, name, fieldKey, ...restField }) => (
-                            <Space key={key} style={{ display: 'flex', marginBottom: 8 }} align="baseline">
-                                <Form.Item
-                                    {...restField}
-                                    name={[name]}
-                                    fieldKey={[fieldKey]}
-                                    rules={[{ required: true, message: 'Please input the image URL!' }]}
-                                >
-                                    <Input placeholder="Enter image URL" style={{ width: '250px' }} />
-                                </Form.Item>
-                                {/* Button to remove this specific field */}
-                                <MinusCircleOutlined onClick={() => remove(name)} />
-                            </Space>
-                        ))}
-
-                        {/* Button to add more fields */}
-                        <Form.Item>
-                            <Button type="dashed" onClick={() => add()} block icon={<PlusOutlined />}>
-                                Add Image URL
-                            </Button>
-                        </Form.Item>
-                    </>
-                )}
-            </Form.List>
-            <Div>
-                <Button type="primary" htmlType="submit" style={{ padding: '10px 15px', borderRadius: '10px', fontWeight: '500', fontSize: '1rem' }}>
-                    Confirm
-                </Button>
-            </Div>
-        </Form>
         
-        </Div>
-        
-        </>
-    );
+        <Form.Item 
+          label="Product Description" 
+          name="description" 
+          initialValue={pendingProduct?.description}
+          rules={[
+            { required: true, message: 'Please input the product description!' },
+            { whitespace: true, message: 'Description cannot be empty or just spaces!' }
+          ]}
+        >
+          <Input.TextArea
+            placeholder="Enter product description"
+            style={{ width: '100%', borderRadius: '5px' }}
+          />
+        </Form.Item>
+
+        <Form.Item 
+          label="Price" 
+          name="price" 
+          initialValue={pendingProduct?.price}
+          rules={[
+            { required: true, message: 'Please input the product price!' },
+            { type: 'number', min: 0, message: 'Price must be a positive number!' }
+          ]}
+        >
+          <InputNumber
+            placeholder="Enter product price"
+            style={{ width: '100%', borderRadius: '5px' }}
+            min={0}
+            precision={2}
+          />
+        </Form.Item>
+
+        <Form.Item 
+          label="Discount Percentage" 
+          name="discountPercentage" 
+          initialValue={pendingProduct?.discountPercentage}
+          rules={[
+            { required: true, message: 'Please input the discount percentage!' },
+            { type: 'number', min: 0, max: 100, message: 'Discount should be between 0 and 100!' }
+          ]}
+        >
+          <InputNumber
+            placeholder="Enter discount percentage"
+            style={{ width: '100%', borderRadius: '5px' }}
+            min={0}
+            max={100}
+            precision={2}
+          />
+        </Form.Item>
+
+        <Button type="primary" htmlType="submit" style={{ width: '100%', borderRadius: '5px', backgroundColor: '#4CAF50', borderColor: '#4CAF50' }}>
+          Confirm
+        </Button>
+      </Form>
+    </div>
+  );
 }
