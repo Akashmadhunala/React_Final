@@ -3,6 +3,7 @@ import { ArrowUpOutlined, ArrowDownOutlined, DownOutlined } from '@ant-design/ic
 import { AutoComplete, Dropdown, Space, Spin, Pagination } from 'antd';
 import axios from 'axios';
 import NewProductModal from './NewProductModal';
+import { useQuery } from '@tanstack/react-query';
 import { Form, Div, Button, SortButton, ProductContainer, CardWrapper, PriceDropdown } from './SearchStyles';
 
 const ProductImage = lazy(() => import('./ProductImage'));
@@ -14,18 +15,25 @@ const Search = () => {
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 5;
 
-    useEffect(() => {
-        const fetchProducts = async () => {
-            try {
-                const res = await axios.get('https://dummyjson.com/products');
-                setSearchData(res.data.products || []);
-            } catch (error) {
-                console.error('Error fetching products:', error.message);
-            }
-        };
-        fetchProducts();
-    }, []);
+    // Fetch products using React Query
+    const { data, refetch, isLoading } = useQuery({
+        queryKey: ['searchProducts', inp],
+        queryFn: async () => {
+            const response = await axios.get(`https://dummyjson.com/products/search`, {
+                params: { q: inp },
+            });
+            return response.data.products || [];
+        },
+        enabled: false, // disable auto-fetch until search is submitted
+    });
 
+    useEffect(() => {
+        if (data) {
+            setSearchData(data); // Set local state with fetched data for sorting
+        }
+    }, [data]);
+
+    // Fetch options for AutoComplete
     useEffect(() => {
         const fetchOptions = async () => {
             const res = await fetch('https://dummyjson.com/products?limit=0');
@@ -51,26 +59,10 @@ const Search = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         setCurrentPage(1);
-        setSearchData([]);
-
-        if (!inp) {
-            alert('Please enter a search term.');
-            return;
-        }
-
-        try {
-            const response = await axios.get(`https://dummyjson.com/products/search`, {
-                params: { q: inp },
-            });
-            setSearchData(response.data.products || []);
-        } catch (error) {
-            console.error('Error fetching products:', error.message);
-            alert('Failed to fetch products. Please try again later.');
-        }
-
-        setInp("");
+        refetch(); // Trigger data fetch with React Query
     };
 
+    // Sorting functions for different sorting options
     const sortAsc = () => {
         const sortedData = [...searchData].sort((a, b) => a.price - b.price);
         setSearchData(sortedData);
@@ -87,32 +79,9 @@ const Search = () => {
     };
 
     const items = [
-        {
-            key: '1',
-            label: (
-                <SortButton onClick={sortAsc}>
-                    Low To High
-                </SortButton>
-            ),
-            icon: <ArrowUpOutlined />,
-        },
-        {
-            key: '2',
-            label: (
-                <SortButton onClick={sortDsc}>
-                    High To Low
-                </SortButton>
-            ),
-            icon: <ArrowDownOutlined />,
-        },
-        {
-            key: '3',
-            label: (
-                <SortButton onClick={sortByDiscount}>
-                    By Discount
-                </SortButton>
-            ),
-        },
+        { key: '1', label: <SortButton onClick={sortAsc}>Low To High</SortButton>, icon: <ArrowUpOutlined /> },
+        { key: '2', label: <SortButton onClick={sortDsc}>High To Low</SortButton>, icon: <ArrowDownOutlined /> },
+        { key: '3', label: <SortButton onClick={sortByDiscount}>By Discount</SortButton> },
     ];
 
     const indexOfLastItem = currentPage * itemsPerPage;
@@ -145,10 +114,7 @@ const Search = () => {
                     <PriceDropdown>
                         <Dropdown menu={{ items }}>
                             <a onClick={(e) => e.preventDefault()}>
-                                <Space>
-                                    Filter
-                                    <DownOutlined />
-                                </Space>
+                                <Space>Filter <DownOutlined /></Space>
                             </a>
                         </Dropdown>
                     </PriceDropdown>
@@ -175,7 +141,7 @@ const Search = () => {
                                                     <div className="Stars" style={{ "--rating": item.rating, display: "inline" }}></div>
                                                 </div>
                                                 <p>
-                                                    Brand: {item.brand ? item.brand : <i className="fa-solid fa-ban" style={{ color: "#ff1e00" }}></i>}
+                                                    Brand: {item.brand || <i className="fa-solid fa-ban" style={{ color: "#ff1e00" }}></i>}
                                                 </p>
                                             </div>
                                             <hr />

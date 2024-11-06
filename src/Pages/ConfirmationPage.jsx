@@ -120,36 +120,36 @@ export default function ConfirmationPage({addProductSubmit}) {
             </Form.Item>
 
             <Form.Item
-                label="Dimensions"
-                name="dimensions"
-                rules={[{ required: true, message: 'Please input the dimensions!' }]}
-            >
-                <Space>
-                    <Form.Item
-                        name="height"
-                        noStyle
-                        rules={[{ required: true, message: 'Please input the height!' }]}
-                    >
-                        <InputNumber placeholder="Height" style={{ width: '80px' }} />
-                    </Form.Item>
+    label="Dimensions"
+    name="dimensions"
+    // No longer apply validation to the whole `dimensions` object
+>
+    <Space>
+        <Form.Item
+            name="height"
+            noStyle
+            rules={[{ required: true, message: 'Please input the height!' }]}
+        >
+            <InputNumber placeholder="Height" style={{ width: '80px' }} />
+        </Form.Item>
 
-                    <Form.Item
-                        name="width"
-                        noStyle
-                        rules={[{ required: true, message: 'Please input the width!' }]}
-                    >
-                        <InputNumber placeholder="Width" style={{ width: '80px' }} />
-                    </Form.Item>
+        <Form.Item
+            name="width"
+            noStyle
+            rules={[{ required: true, message: 'Please input the width!' }]}
+        >
+            <InputNumber placeholder="Width" style={{ width: '80px' }} />
+        </Form.Item>
 
-                    <Form.Item
-                        name="depth"
-                        noStyle
-                        rules={[{ required: true, message: 'Please input the depth!' }]}
-                    >
-                        <InputNumber placeholder="Depth" style={{ width: '80px' }} />
-                    </Form.Item>
-                </Space>
-            </Form.Item>
+        <Form.Item
+            name="depth"
+            noStyle
+            rules={[{ required: true, message: 'Please input the depth!' }]}
+        >
+            <InputNumber placeholder="Depth" style={{ width: '80px' }} />
+        </Form.Item>
+    </Space>
+</Form.Item>
 
             <Form.Item
                 label="Discount"

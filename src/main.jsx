@@ -1,14 +1,14 @@
-import { StrictMode } from 'react'
-import { createRoot } from 'react-dom/client'
-import App from './App.jsx'
-import './index.css'
-import { ProductProvider } from './ProductContext.jsx'
+// main.jsx
+import { StrictMode } from 'react';
+import { createRoot } from 'react-dom/client';
+import App from './App';
+import { ProductContextProvider } from './ProductContext'; // Import ProductContext
 
-
-createRoot(document.getElementById('root')).render(
+const root = createRoot(document.getElementById('root'));
+root.render(
   <StrictMode>
-    <ProductProvider>
-    <App />
-    </ProductProvider>
-  </StrictMode>,
-)
+    <ProductContextProvider>
+      <App />
+    </ProductContextProvider>
+  </StrictMode>
+);
