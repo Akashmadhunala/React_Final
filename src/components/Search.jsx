@@ -1,4 +1,4 @@
-import React, { useState, Suspense, lazy, useEffect } from 'react';
+import React, { useState, Suspense, lazy, useEffect, useMemo } from 'react';
 import { ArrowUpOutlined, ArrowDownOutlined, DownOutlined } from '@ant-design/icons';
 import { AutoComplete, Dropdown, Space, Spin, Pagination } from 'antd';
 import NewProductModal from './NewProductModal';
@@ -17,13 +17,22 @@ const Search = () => {
   const { sortedProducts, sortData } = useMapping(); // Use sorted products from custom hook
 
   // AutoComplete options for search
-  const options = sortedProducts?.map(({ id, title }) => ({ label: title, value: title, key: id })) || [];
+  const options = useMemo(
+    () => sortedProducts?.map(({ id, title }) => ({ label: title, value: title, key: id })) || [],
+    [sortedProducts]
+  );
 
   // Filter products based on search input (starts with the entered value)
-  const filteredProducts = sortedProducts?.filter(({ title }) => title.toLowerCase().startsWith(inp.toLowerCase())) || [];
+  const filteredProducts = useMemo(
+    () => sortedProducts?.filter(({ title }) => title.toLowerCase().startsWith(inp.toLowerCase())) || [],
+    [sortedProducts, inp]
+  );
 
   // Pagination logic
-  const currentItems = filteredProducts.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+  const currentItems = useMemo(
+    () => filteredProducts.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage),
+    [filteredProducts, currentPage]
+  );
 
   // Sorting menu items
   const items = [
