@@ -10,6 +10,19 @@ export default function ConfirmationPage() {
   const navigate = useNavigate();
   const { pendingProduct, setPendingProduct, addProduct } = useProductContext();
 
+  // Setting up useMutation to handle product addition
+  const { mutate } = useMutation({
+    mutationFn: addProduct,
+    onSuccess: () => {
+      message.success('Product added successfully');
+      setPendingProduct(null); // Clear the pending product data
+      navigate('/'); // Redirect to the home page
+    },
+    onError: () => {
+      message.error('Error adding product');
+    },
+  });
+
   // Form submission handler
   const handleSubmit = (values) => {
     const newProduct = { 
@@ -20,8 +33,8 @@ export default function ConfirmationPage() {
       discountPercentage: values.discountPercentage,
     };
 
-    // Call addProduct function to add the product
-    addProduct(newProduct);
+    // Trigger mutation to add the product
+    mutate(newProduct);
   };
 
   // Redirect to home if no pending product is found
