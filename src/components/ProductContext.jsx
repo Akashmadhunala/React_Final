@@ -41,7 +41,11 @@ export const ProductProvider = ({ children }) => {
       const addedProduct = await res.json();
 
       // Update the context's product list after successful addition
-      queryClient.setQueryData(['products'], (oldData) => [...oldData, addedProduct]);
+      queryClient.setQueryData(['products'], (oldData) => {
+        const updatedData = [...oldData, addedProduct];
+        console.log('Updated Products:', updatedData); // Log the updated products list
+        return updatedData;
+      });
 
       setPendingProduct(null); // Clear pending product after adding
     } catch (error) {

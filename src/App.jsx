@@ -6,6 +6,7 @@ import HomePage from './Pages/HomePage';
 import ConfirmationPage from './Pages/ConfirmationPage';
 import MainLayout from './Layouts/MainLayout';
 import { ProductProvider } from './components/ProductContext';
+import ErrorBoundary from './components/ErrorBoundary';
 
 const queryClient = new QueryClient();
 
@@ -22,7 +23,9 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <ProductProvider>
-        <RouterProvider router={router} />
+        <ErrorBoundary>
+          <RouterProvider router={router} />
+        </ErrorBoundary>
       </ProductProvider>
     </QueryClientProvider>
   );
