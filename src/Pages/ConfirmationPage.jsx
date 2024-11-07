@@ -8,33 +8,7 @@ import { useMutation } from '@tanstack/react-query';
 
 export default function ConfirmationPage() {
   const navigate = useNavigate();
-  const { pendingProduct, setPendingProduct } = useProductContext();
-
-  // Define the addProduct function for the POST request
-  const addProduct = async (newProduct) => {
-    const response = await fetch('https://dummyjson.com/products/add', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(newProduct),
-    });
-    if (!response.ok) {
-      throw new Error('Failed to add product');
-    }
-    return response.json();
-  };
-
-  // Use React Query's useMutation hook with the proper syntax
-  const { mutate } = useMutation({
-    mutationFn: addProduct,  // The async function that handles the mutation
-    onSuccess: () => {
-      message.success('Product added successfully');
-      setPendingProduct(null); // Clear the pending product
-      navigate('/'); // Navigate to home page
-    },
-    onError: () => {
-      message.error('Error adding product');
-    },
-  });
+  const { pendingProduct, setPendingProduct, addProduct } = useProductContext();
 
   // Form submission handler
   const handleSubmit = (values) => {
@@ -45,7 +19,9 @@ export default function ConfirmationPage() {
       price: values.price,
       discountPercentage: values.discountPercentage,
     };
-    mutate(newProduct); // Trigger the mutation
+
+    // Call addProduct function to add the product
+    addProduct(newProduct);
   };
 
   // Redirect to home if no pending product is found

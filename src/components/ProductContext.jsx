@@ -38,8 +38,11 @@ export const ProductProvider = ({ children }) => {
 
       if (!res.ok) throw new Error('Failed to add product');
 
-      // Refetch products to get the updated list after adding
-      await queryClient.invalidateQueries(['products']);
+      const addedProduct = await res.json();
+
+      // Update the context's product list after successful addition
+      queryClient.setQueryData(['products'], (oldData) => [...oldData, addedProduct]);
+
       setPendingProduct(null); // Clear pending product after adding
     } catch (error) {
       console.error('Error adding product:', error);

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { DatePicker } from 'antd';
-import moment from 'moment';
+import dayjs from 'dayjs'; // Import dayjs for better date handling
 import styled from 'styled-components';
 
 const Div = styled.div`
@@ -21,32 +21,38 @@ const DatePickerContainer = styled.div`
 `;
 
 export default function DatePickers() {
-    const [start, setStart] = useState(moment().subtract(7, 'days'));
-    const [end, setEnd] = useState(moment());
+    const [start, setStart] = useState(dayjs().subtract(7, 'days'));  // Default start date (7 days ago)
+    const [end, setEnd] = useState(dayjs());  // Default end date (today)
 
+    // When the start date is changed
     const onStartChange = (date) => {
-        console.log("Start Date Changed:", date ? date.format("DD-MM-YYYY") : null);
+        console.log("Start Date Changed:", date ? date.format("DD-MM-YYYY") : null); // dayjs format
         if (date) {
-            setStart(date);
-            if (end.isBefore(date)) {
-                alert('End date should not be before the start date.'); // Alert
+            // If the selected end date is before the new start date, show an alert and reset the end date
+            if (end.isBefore(date, 'day')) {
+                alert('End date should not be before the start date.');
+                setEnd(date); // Reset end date to the start date
             }
+            setStart(date); // Update start date
         }
     };
 
+    // When the end date is changed
     const onEndChange = (date) => {
-        console.log("End Date Changed:", date ? date.format("DD-MM-YYYY") : null);
+        console.log("End Date Changed:", date ? date.format("DD-MM-YYYY") : null); // dayjs format
         if (date) {
-            if (date.isBefore(start)) {
-                alert('End date must be greater than or equal to the start date.'); // Show alert
-            } else {
-                setEnd(date); // Update end date only if it's valid
+            // If the end date is before the start date, show an alert and do not update
+            if (date.isBefore(start, 'day')) {
+                alert('End date must be greater than or equal to the start date.');
+                return; // Do not update the end date if invalid
             }
+            setEnd(date); // Update end date if it's valid
         }
     };
 
+    // Disable end date selection before the start date
     const disabledEndDate = (current) => {
-        return current && current < start; // Disable dates before the start date
+        return current && current.isBefore(start, 'day'); // Disable any date before the start date
     };
 
     return (
@@ -69,7 +75,7 @@ export default function DatePickers() {
                     format={"DD-MM-YYYY"}
                     placeholder='DD-MM-YYYY'
                     value={end}
-                    disabledDate={disabledEndDate}
+                    disabledDate={disabledEndDate} // Disable end dates before the start date
                 />
             </DatePickerContainer>
         </Div>
