@@ -4,33 +4,54 @@ import { useNavigate } from 'react-router-dom';
 import { useProductContext } from '../components/ProductContext';
 import { Button, Form, Input, InputNumber, message } from 'antd';
 import { v4 as uuidv4 } from 'uuid';
+import { useMutation } from '@tanstack/react-query';
 
-export default function ConfirmationPage({ addProduct }) {
+export default function ConfirmationPage() {
   const navigate = useNavigate();
   const { pendingProduct, setPendingProduct } = useProductContext();
 
-  const handleSubmit = async (values) => {
+  // Define the addProduct function for the POST request
+  const addProduct = async (newProduct) => {
+    const response = await fetch('https://dummyjson.com/products/add', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(newProduct),
+    });
+    if (!response.ok) {
+      throw new Error('Failed to add product');
+    }
+    return response.json();
+  };
+
+  // Use React Query's useMutation hook with the proper syntax
+  const { mutate } = useMutation({
+    mutationFn: addProduct,  // The async function that handles the mutation
+    onSuccess: () => {
+      message.success('Product added successfully');
+      setPendingProduct(null); // Clear the pending product
+      navigate('/'); // Navigate to home page
+    },
+    onError: () => {
+      message.error('Error adding product');
+    },
+  });
+
+  // Form submission handler
+  const handleSubmit = (values) => {
     const newProduct = { 
       id: uuidv4(), 
       title: values.title, 
       description: values.description, 
       price: values.price,
-      discountPercentage: values.discountPercentage, // Added discount
+      discountPercentage: values.discountPercentage,
     };
-
-    try {
-      await addProduct(newProduct);
-      message.success('Product added successfully');
-      setPendingProduct(null); // Clear the pending product
-      navigate('/'); // Navigate to home page
-    } catch (error) {
-      message.error('Error adding product');
-    }
+    mutate(newProduct); // Trigger the mutation
   };
 
+  // Redirect to home if no pending product is found
   useEffect(() => {
     if (!pendingProduct) {
-      navigate('/');  // Redirect to home if no pending product
+      navigate('/');  
     }
   }, [pendingProduct, navigate]);
 
@@ -47,10 +68,7 @@ export default function ConfirmationPage({ addProduct }) {
             { whitespace: true, message: 'Product name cannot be empty or just spaces!' }
           ]}
         >
-          <Input
-            placeholder="Enter product name"
-            style={{ width: '100%', borderRadius: '5px' }}
-          />
+          <Input placeholder="Enter product name" style={{ width: '100%', borderRadius: '5px' }} />
         </Form.Item>
         
         <Form.Item 
@@ -62,10 +80,7 @@ export default function ConfirmationPage({ addProduct }) {
             { whitespace: true, message: 'Description cannot be empty or just spaces!' }
           ]}
         >
-          <Input.TextArea
-            placeholder="Enter product description"
-            style={{ width: '100%', borderRadius: '5px' }}
-          />
+          <Input.TextArea placeholder="Enter product description" style={{ width: '100%', borderRadius: '5px' }} />
         </Form.Item>
 
         <Form.Item 
@@ -77,12 +92,7 @@ export default function ConfirmationPage({ addProduct }) {
             { type: 'number', min: 0, message: 'Price must be a positive number!' }
           ]}
         >
-          <InputNumber
-            placeholder="Enter product price"
-            style={{ width: '100%', borderRadius: '5px' }}
-            min={0}
-            precision={2}
-          />
+          <InputNumber placeholder="Enter product price" style={{ width: '100%', borderRadius: '5px' }} min={0} precision={2} />
         </Form.Item>
 
         <Form.Item 
@@ -94,13 +104,7 @@ export default function ConfirmationPage({ addProduct }) {
             { type: 'number', min: 0, max: 100, message: 'Discount should be between 0 and 100!' }
           ]}
         >
-          <InputNumber
-            placeholder="Enter discount percentage"
-            style={{ width: '100%', borderRadius: '5px' }}
-            min={0}
-            max={100}
-            precision={2}
-          />
+          <InputNumber placeholder="Enter discount percentage" style={{ width: '100%', borderRadius: '5px' }} min={0} max={100} precision={2} />
         </Form.Item>
 
         <Button type="primary" htmlType="submit" style={{ width: '100%', borderRadius: '5px', backgroundColor: '#4CAF50', borderColor: '#4CAF50' }}>
